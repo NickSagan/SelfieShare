@@ -8,7 +8,7 @@
 import UIKit
 import MultipeerConnectivity
 
-class ViewController: UICollectionViewController, UINavigationControllerDelegate, UIImagePickerControllerDelegate, MCSessionDelegate {
+class ViewController: UICollectionViewController, UINavigationControllerDelegate, UIImagePickerControllerDelegate, MCSessionDelegate, MCBrowserViewControllerDelegate {
 
     var images = [UIImage]()
     var peerID = MCPeerID(displayName: UIDevice.current.name)
@@ -77,26 +77,53 @@ class ViewController: UICollectionViewController, UINavigationControllerDelegate
         present(mcBrowser, animated: true)
     }
     
-    //MARK: - MCSession
+    //MARK: - MCSessionDelegate
     
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
-        <#code#>
+        switch state {
+        case .connected:
+            print("Connected: \(peerID.displayName)")
+
+        case .connecting:
+            print("Connecting: \(peerID.displayName)")
+
+        case .notConnected:
+            print("Not Connected: \(peerID.displayName)")
+
+        @unknown default:
+            print("Unknown state received: \(peerID.displayName)")
+        }
     }
     
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
-        <#code#>
+        DispatchQueue.main.async { [weak self] in
+            if let image = UIImage(data: data) {
+                self?.images.insert(image, at: 0)
+                self?.collectionView.reloadData()
+            }
+        }
     }
     
     func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
-        <#code#>
+        // Don't need
     }
     
     func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
-        <#code#>
+        // Don't need
     }
     
     func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {
-        <#code#>
+        // Don't need
+    }
+    
+    //MARK: - MCBrowserViewControllerDelegate
+    
+    func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
+        dismiss(animated: true)
+    }
+    
+    func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
+        dismiss(animated: true)
     }
 }
 
