@@ -52,6 +52,25 @@ class ViewController: UICollectionViewController, UINavigationControllerDelegate
 
         images.insert(image, at: 0)
         collectionView.reloadData()
+        
+        // 1. Check if we have an active session we can use.
+        guard let mcSession = mcSession else { return }
+
+        // 2. Check if there are any peers to send to.
+        if mcSession.connectedPeers.count > 0 {
+            // 3. Convert the new image to a Data object.
+            if let imageData = image.pngData() {
+                // 4. Send it to all peers, ensuring it gets delivered.
+                do {
+                    try mcSession.send(imageData, toPeers: mcSession.connectedPeers, with: .reliable)
+                } catch {
+                    // 5. Show an error message if there's a problem.
+                    let ac = UIAlertController(title: "Send error", message: error.localizedDescription, preferredStyle: .alert)
+                    ac.addAction(UIAlertAction(title: "OK", style: .default))
+                    present(ac, animated: true)
+                }
+            }
+        }
     }
     
     @objc func showConnectionPrompt() {
